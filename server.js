@@ -2,24 +2,23 @@ const express = require('express');
 const { Server } = require('ws');
 const os = require('os');
 const cors = require('cors');
+require('dotenv').config();
+const authRouter = require("./routers/authRouter")
 
 const app = express();
-const port = 5600;
+const port = process.env.PORT || 8000;
 
-app.use(cors({
-    origin: '*', // Allow all origins
-    methods: ['GET', 'POST'], // Allow only GET and POST methods
-    allowedHeaders: ['Content-Type'], // Allow only specific headers
-}));
+app.use(cors());
 app.use(express.json());
+
+
+app.use("/api/auth", authRouter)
 
 const server = app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });
 
 const wss = new Server({ server });
-
-// Get system stats function
 function getSystemStats() {
     const totalMemory = os.totalmem();
     const freeMemory = os.freemem();
@@ -42,14 +41,8 @@ function getSystemStats() {
         networkInterfaces: os.networkInterfaces(),
     };
 }
-
-// Handle GET request to fetch system stats
 app.get('/system-stats', (req, res) => {
     const stats = getSystemStats();
-    res.json(stats); // Send the stats as a JSON response
+    res.json(stats);
 });
-
-// Serve static files from 'public' folder
 app.use(express.static('public'));
-
-console.log(`Static files are served from the public directory at http://localhost:${port}/`);
